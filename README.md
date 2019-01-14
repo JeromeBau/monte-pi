@@ -1,1 +1,1 @@
-# monte-carlo
+# Estimate pi with Monte Carlo
