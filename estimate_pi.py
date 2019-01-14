@@ -23,3 +23,4 @@ def estimate_pie(sample_size: int, radius):
 if __name__ == "__main__":
     sample_size = sys.argvs[1]
     radius = sys.argv[2]
+    print(estimate_pie(sample_size, radius))
