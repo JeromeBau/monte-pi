@@ -1,8 +1,10 @@
+import math
 import random
 from typing import List
 
 import imageio
 import matplotlib
+from matplotlib import gridspec
 
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
@@ -57,29 +59,50 @@ def continous_improvement_demo(sample_sizes: List[int], radius=1):
     return memory
 
 
-def make_demo_graph(radius=1):
+def make_demo_graph(graph_folder,radius=1):
     sample_sizes = [i for i in range(1, 1000) if i % 20 == 0] + \
                    [i for i in range(1000, 5000) if i % 50 == 0] + \
-                   [i for i in range(5000, 10000) if i % 100 == 0] + \
-                   [10000] * 10
+                   [i for i in range(5000, 10000) if i % 100 == 0]
     demo_data = continous_improvement_demo(sample_sizes)
     image_paths = []
+    series_random = random.randint(1, 10000)
     for sample_size in sample_sizes:
-        fig, ax = plt.subplots()
-        ax.set_xlim(-radius, radius)
-        ax.set_ylim(-radius, radius)
+        print(sample_size)
+        # fig, (ax1, ax2) = plt.subplots(2, 1)
+        fig = plt.figure(figsize=(6, 8))
+
+        gs = gridspec.GridSpec(2, 1, height_ratios=[1, 3])
+        ax0 = plt.subplot(gs[0])
+        ax0.set_ylim(2.94, 3.34)
+        ax0.set_xlim(0, int(sample_sizes[-1] + 0.1 * sample_sizes[-1]))
+
+        ax1 = plt.subplot(gs[1])
+        ax1.set_ylim(-1, 1)
+        ax1.set_xlim(-1, 1)
+
         circle1 = plt.Circle((0.0, 0.0), radius, color='lightgray')
-        ax.add_artist(circle1)
+        # ax.add_artist(circle1)
+        ax1.add_artist(circle1)
         x_values_in = list(map(lambda tup: tup[0], demo_data[sample_size]["points_in"]))
         y_values_in = list(map(lambda tup: tup[1], demo_data[sample_size]["points_in"]))
-        ax.scatter(x_values_in, y_values_in, facecolor="red", zorder=100, s=1)
+        # ax.scatter(x_values_in, y_values_in, facecolor="red", zorder=100, s=1)
+        ax1.scatter(x_values_in, y_values_in, facecolor="red", zorder=100, s=1)
         x_values_out = list(map(lambda tup: tup[0], demo_data[sample_size]["points_out"]))
         y_values_out = list(map(lambda tup: tup[1], demo_data[sample_size]["points_out"]))
-        ax.scatter(x_values_out, y_values_out, facecolor="black", zorder=100, s=1)
-        plt.title("Sample size = {sample_size}\n"
-                  "Pi estimate = {pi}.".format(sample_size=sample_size, pi=round(demo_data[sample_size]["estimate"], 5)), loc='left')
-        path = "/home/jjb/Dropbox/Programming/GIT/monte-carlo/graphs/graph_{sample_size}_{random}.png".format(sample_size=sample_size,
-                                                                                                              random=random.randint(1, 10000))
+        # ax.scatter(x_values_out, y_values_out, facecolor="black", zorder=100, s=1)
+        ax1.scatter(x_values_out, y_values_out, facecolor="black", zorder=100, s=1)
+
+        x = list(filter(lambda i: i <= sample_size, sample_sizes))
+        estimates = [d["estimate"] for k, d in demo_data.items() if k in x]
+        ax0.plot(x, estimates)
+        ax0.axhline(y=math.pi, color='r')
+        fig.suptitle("Sample size = {sample_size}\n"
+                     "Pi estimate = {pi}.".format(sample_size=sample_size, pi=round(demo_data[sample_size]["estimate"], 5)),
+                     horizontalalignment="left")  # , fontsize=14)
+
+        path = "{base_folder}/graph_{sample_size}_{random}.png".format(base_folder=graph_folder,
+                                                                       sample_size=sample_size,
+                                                                       random=series_random)
         plt.savefig(path)
         image_paths.append(path)
         fig.clf()
@@ -88,7 +111,8 @@ def make_demo_graph(radius=1):
     images = []
     for filename in image_paths:
         images.append(imageio.imread(filename))
-    imageio.mimsave("/home/jjb/Dropbox/Programming/GIT/monte-carlo/graphs/pi_estiamte_evolution.gif", images)
+    imageio.mimsave("{base_folder}/pi_estiamte_evolution_{random}.gif".format(base_folder=graph_folder,
+                                                                              random=series_random), images)
 
 
 if __name__ == "__main__":
@@ -96,7 +120,7 @@ if __name__ == "__main__":
     # radius = int(sys.argv[2])
     # print(generate_points_and_estimate_pi(sample_size, radius))
     # mem = continous_improvement_demo([10, 100, 1000, 10000])
-    make_demo_graph()
+    make_demo_graph(graph_folder="/home/jjb/Dropbox/Programming/GIT/monte-carlo/graphs")
 
 
     # all_values = {}
